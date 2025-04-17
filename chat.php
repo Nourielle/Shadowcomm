@@ -20,6 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
 // Gestion de la suppression de compte
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_account'])) {
     $user_id = $_SESSION['user_id'];
+
+    // Supprimer les messages associés à l'utilisateur avant de supprimer l'utilisateur
+    $conn->query("DELETE FROM messages WHERE sender_id = '$user_id'");
+
+    // Supprimer l'utilisateur
     if ($conn->query("DELETE FROM users WHERE id = '$user_id'")) {
         session_destroy(); // Détruire la session
         echo "<script>alert('Votre compte a été supprimé.'); window.location.href='inscri.php';</script>";
@@ -31,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_account'])) {
 $messages = $conn->query("SELECT users.username, messages.content, messages.timestamp 
      FROM messages 
      JOIN users ON messages.sender_id = users.id 
-     ORDER BY messages.id DESC");
+     ORDER BY messages.id ASC"); 
 $conn->close();
 ?>
 
@@ -43,7 +48,8 @@ $conn->close();
     <style>
         /* Styles pour la mise en page du chat */
         body { background: #0a0a0a; color: #00ffcc; font-family: Arial, sans-serif; text-align: center; }
-        .chat-box { width: 50%; margin: auto; border: 1px solid #00ffcc; padding: 20px; background: #222; border-radius: 10px; }
+        .chat-box { width: 50%; margin: auto; border: 1px solid #00ffcc; padding: 20px; background: #222; border-radius: 10px; display: flex; flex-direction: column; }
+        .messages-container { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; }
         .message { margin: 10px 0; padding: 10px; background: #333; border-radius: 5px; }
         .timestamp { font-size: 0.8em; color: #888; display: block; margin-top: 5px; }
         input, button { padding: 10px; margin-top: 10px; }
@@ -54,7 +60,7 @@ $conn->close();
 <body>
     <div class="chat-box">
         <h2>Chat Sécurisé</h2>
-        <div id="messages">
+        <div class="messages-container" id="messages">
             <!-- Affichage des messages -->
             <?php while ($msg = $messages->fetch_assoc()): ?>
                 <div class="message">
@@ -77,5 +83,10 @@ $conn->close();
             <button type="submit" class="logout-btn">Déconnexion</button>
         </form>
     </div>
+    <script>
+        // Faire défiler automatiquement vers le bas pour afficher les nouveaux messages
+        const messagesContainer = document.getElementById('messages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    </script>
 </body>
 </html>
