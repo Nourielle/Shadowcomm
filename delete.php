@@ -20,13 +20,7 @@ if ($stmt->execute()) {
 }
 $stmt->close();
 $conn->close();
-?>
 
-
-
-<?php
-session_start();
-include 'bd.php';
 
 // Vérifie si l'utilisateur est connecté
 if (!isset($_SESSION['pseudo'])) {
